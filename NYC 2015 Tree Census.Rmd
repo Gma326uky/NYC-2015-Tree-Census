@@ -1,0 +1,192 @@
+---
+title: "NYC 2015 Tree Census"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+
+The NYC 2015 tree census has been done every 10 years since 1995, which records 
+the location, size, species, and condition of all public street and park trees 
+in New York City. 
+
+For the park trees, it involves volunteers from NYC that are trained on-site, 
+and for the street trees, it uses cars with mounted devices that collect 
+information on the trees.
+
+Let's first import our data set, and load the Tidyverse package for ggplot, we
+will get our data from the NYC OpenData website:
+
+https://data.cityofnewyork.us/Environment/2015-Street-Tree-Census-Tree-Data/uvpi-gqnh/about_data
+
+
+```{r}
+
+# Import data set
+Tree_Data <- read.csv("C:/Users/gabox/OneDrive/Desktop/UKY Classes/Projects/NYC 2015 Tree Census/2015_Street_Tree_Census_-_Tree_Data_20251025.csv")
+  
+# Install Tidyverse
+options(repos = c(CRAN = "https://cran.rstudio.com"))
+install.packages("tidyverse")
+
+# Load Tidyverse package
+library(tidyverse)
+
+```
+
+
+From the description of the project on the website, some of its goals are:
+
+- Understand the characteristics of the Urban forest's population in NYC.
+- Understand the change over time of the urban forest in NYC.
+- Develop new management and operational plans for all trees across the city.
+- Identify areas where there is room for more trees.
+
+Since one of the goals of the study is to understand the characteristics of the
+Urban forest's population in NYC, my goal will be to create a plot that shows
+some of these characteristics.
+
+Let's use the head() function to see what kind of information we have
+available in the data set.
+
+
+```{r}
+
+# First 6 rows in tree data set
+head(Tree_Data)
+
+```
+
+
+I can see on the data set that the tree species are recorded under "spc_common".
+Since this study wants to better understand the characteristic of the trees in
+NYC, I want to show the characteristics of some of the specifies of trees. Let's
+take a look at how many tree species are in our data set:
+
+
+```{r}
+
+# Number of species of trees in the data
+length(unique(Tree_Data$spc_common))
+
+```
+
+I see that there's a total of 133 species of trees in the data. I will select
+the 5 most common species of trees in the data set for our plot. Let's first
+see which are the most common species.
+
+
+```{r}
+
+Tree_Data %>% 
+  # Group by the species
+  group_by(spc_common) %>% 
+  # Count totals for each group
+  count() %>% 
+  # Arrange by most to least common
+  arrange(desc(n)) %>% 
+  # Show only the first 5 rows
+  head(n = 5)
+
+```
+
+
+Now I will create a new data set by filtering our data so that it contains only 
+the 5 most common species.
+
+
+```{r}
+
+# Vector of 5 most common tree species
+common_species <- c("London planetree", "honeylocust", "Callery pear", "pin oak", "Norway maple")
+
+# New data set
+Tree_Data_spc <- Tree_Data %>% 
+  # Include only 5 most common tree species
+  filter(spc_common == common_species)
+
+```
+
+
+Now that we have our data with only the 5 most common species, let's look at 
+some of the characteristics of these species.
+
+I want to look the the average of the diameter at breast height for each of the
+5 species of trees in our data set, and see how this diameter differs according
+to the borough or city of NYC the tree is located at.
+
+In our data set, diameters at breast height are recorded under "tree_dbh",
+cities are recorded under "zip_city", and the boroughs are recorded under
+"borough". 
+
+Let's first check how many boroughs and cities there are at NYC.
+
+
+```{r}
+
+# Number of boroughs in NYC
+length(unique(Tree_Data_spc$borough))
+
+# Number of cities in NYC
+length(unique(Tree_Data_spc$zip_city))
+
+```
+
+We see that there's only 5 boroughs compared to 47 cities. I will use boroughs
+in my plot for the sake of simplicity, and so that we can take into 
+consideration every single tree of each species in the data set.
+
+Now let's plot our data.
+
+
+```{r}
+
+Tree_Data_spc %>% 
+  # Group by the tree species and borough of NYC
+  group_by(spc_common, borough) %>% 
+  # Calculate average diameter at breast height
+  summarise(mean_dbh = mean(tree_dbh, na.rm = TRUE)) %>%
+  # Plot data
+  ggplot(aes(
+    # Tree species displayed at x-axis
+    x = spc_common, 
+    # Average diameter at breast height displayed in y-axis
+    y = mean_dbh, 
+    # Borough represented by bar color
+    fill = borough)
+    ) +
+  # Place bars of tree species by boroughs
+  geom_col(position = "dodge") +
+  # Change theme to black and white
+  theme_bw() + 
+  # Change x label
+  xlab("Tree Species") + 
+  # Change y label
+  ylab("Average Diameter at Breast Height") +
+  # Add title
+  ggtitle("Average DBH of the 5 Most Common Tree Species in NYC by Borough") +
+  # Change legend title
+  labs(fill = "Borough")
+
+
+```
+
+
+Looking at our plot, we can see that the London planetree species has the 
+highest average DBH out of all tree species, with the Callery pear species 
+having the lowest average DBH out of all species.
+
+We can also see that the trees at Queens tend to have the highest average
+DBH for all species of trees, with the trees at Manhattan having the
+lowest average DBH out of all boroughs of NYC.
+
+Finally, the Callery pear's average DBH was the most consistent among boroughs, 
+with the London planetree having the highest variation by location.
+
+Something to note here is that the London plane species had the highest average 
+DBH and the Callery pear had the lowest, so it seems as though the lower a
+tree specie's average DBH is, the less its DBH will vary by different
+locations, in this case the borough. 
+
+
