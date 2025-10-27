@@ -57,3 +57,5 @@ I also made sure to add descriptive labels and a theme to my plot to make it eas
 There does seem to be a significant relationship between size and location for all tree species, given that the average DBH changed in the same direction (increased or decreased) for all trees depending on the location.
 
 However, proportion of the change in mean DBH does seem to differ according to the tree species, with the change in the "Callery pear" species being the most consistent, and the change in the "London planetree" having the most variation. Something to note is that at every location, the "Callery pear" always had the lowest average DBH of all 5 tree species, and the "London planetree" the highest, which may be related to the proportional change per location.
+
+Some of the challenges while doing this project were arranging the data of the observations of tree species in descending order, for which I specified "desc(n)" inside the arrange() function to accomplish this. I also learned to to create bar graphs with the bars side by side instead of on top of each other by using the 'position = "dodge"' argument.
